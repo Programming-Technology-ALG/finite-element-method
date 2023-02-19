@@ -146,7 +146,7 @@ double FEM<dim>::basis_function(unsigned int node, double xi){
   /*You can use the function "xi_at_node" (defined above) to get the value of xi (in the bi-unit domain)
     at any node in the element - using deal.II's element node numbering pattern.*/
 
-  //EDIT
+  //EDIT 
 
   return value;
 }
