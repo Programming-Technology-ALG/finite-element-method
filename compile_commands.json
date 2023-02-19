@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/Users/alexgiving/Documents/lab1_starter",
+  "command": "/opt/homebrew/bin/mpicxx -DBOOST_NO_AUTO_PTR -DDEBUG -isystem /Users/alexgiving/dealii-candi/deal.II-v9.4.2/include -isystem /Users/alexgiving/dealii-candi/deal.II-v9.4.2/include/deal.II/bundled -isystem /Users/alexgiving/dealii-candi/trilinos-release-13-2-0/include -isystem /Users/alexgiving/dealii-candi/hdf5-1.10.8/include -isystem /Users/alexgiving/dealii-candi/p4est-2.3.2/FAST/include  -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.0.sdk -pedantic -fPIC -Wall -Wextra -Wmissing-braces -Woverloaded-virtual -Wpointer-arith -Wsign-compare -Wswitch -Wsynth -Wwrite-strings -Wno-psabi -Wfloat-conversion -Qunused-arguments -Wno-unsupported-friend -Wno-undefined-var-template -Wno-pass-failed -openmp-simd -ftemplate-depth=1024 -std=c++14 -Wno-parentheses -Wno-unused-local-typedefs -Og -ggdb -Wa,--compress-debug-sections -o CMakeFiles/main1.dir/main1.cc.o -c /Users/alexgiving/Documents/lab1_starter/main1.cc",
+  "file": "/Users/alexgiving/Documents/lab1_starter/main1.cc"
+}
+]
