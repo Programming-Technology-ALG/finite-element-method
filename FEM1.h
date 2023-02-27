@@ -125,8 +125,8 @@ double FEM<dim>::xi_at_node(unsigned int dealNode){
   }
   else{
     std::cout << "Error: you input node number "
-	      << dealNode << " but there are only " 
-	      << basisFunctionOrder + 1 << " nodes in an element.\n";
+          << dealNode << " but there are only " 
+          << basisFunctionOrder + 1 << " nodes in an element.\n";
     exit(0);
   }
 
@@ -146,7 +146,20 @@ double FEM<dim>::basis_function(unsigned int node, double xi){
   /*You can use the function "xi_at_node" (defined above) to get the value of xi (in the bi-unit domain)
     at any node in the element - using deal.II's element node numbering pattern.*/
 
-  //EDIT 
+  // DONE
+  unsigned int A = node; // alias like in lections
+  double delta_i_b = 1.;
+  double delta_a_b = 1.;
+
+  for (unsigned int B = 0; B < basisFunctionOrder; ++B)
+  {
+    if (B != A)
+    {
+      delta_i_b *= (xi - xi_at_node(B));
+      delta_a_b *= (xi_at_node(A) - xi_at_node(B));
+    }
+  }
+  value = delta_i_b / delta_a_b;
 
   return value;
 }
@@ -165,7 +178,61 @@ double FEM<dim>::basis_gradient(unsigned int node, double xi){
   /*You can use the function "xi_at_node" (defined above) to get the value of xi (in the bi-unit domain)
     at any node in the element - using deal.II's element node numbering pattern.*/
 
-  //EDIT
+  //DONE
+
+
+  double xi0 = xi_at_node(node);
+  double xi1 = 0.0, xi2 = 0.0, xi3 = 0.0;
+
+  switch ((int)basisFunctionOrder) {
+  case 1:
+    value = (node == 0) ? -0.5 : 0.5;
+    break;
+  case 2:
+    switch (node) {
+    case 0:
+      xi1 = xi_at_node(1);
+      xi2 = xi_at_node(2);
+      break;
+    case 1:
+      xi1 = xi_at_node(0);
+      xi2 = xi_at_node(2);
+      break;
+    case 2:
+      xi1 = xi_at_node(0);
+      xi2 = xi_at_node(1);
+      break;
+    }
+    value = ((xi - xi2) + (xi - xi1)) / ((xi0 - xi1) * (xi0 - xi2));
+    break;
+  case 3:
+    switch (node) {
+    case 0:
+      xi1 = xi_at_node(1);
+      xi2 = xi_at_node(2);
+      xi3 = xi_at_node(3);
+      break;
+    case 1:
+      xi1 = xi_at_node(0);
+      xi2 = xi_at_node(2);
+      xi3 = xi_at_node(3);
+      break;
+    case 2:
+      xi1 = xi_at_node(0);
+      xi2 = xi_at_node(1);
+      xi3 = xi_at_node(3);
+      break;
+    case 3:
+      xi1 = xi_at_node(0);
+      xi2 = xi_at_node(1);
+      xi3 = xi_at_node(2);
+      break;
+    }
+    value = ((xi - xi2) * (xi - xi3) + (xi - xi1) * (xi - xi3) +
+             (xi - xi1) * (xi - xi2)) /
+            ((xi0 - xi1) * (xi0 - xi2) * (xi0 - xi3));
+    break;
+  }
 
   return value;
 }
@@ -175,7 +242,7 @@ template <int dim>
 void FEM<dim>::generate_mesh(unsigned int numberOfElements){
 
   //Define the limits of your domain
-  L = ; //EDIT
+  L = 0.1; // DONE
   double x_min = 0.;
   double x_max = L;
 
@@ -206,12 +273,11 @@ void FEM<dim>::define_boundary_conds(){
       boundary_values[globalNode] = g1;
     }
     if(nodeLocation[globalNode] == L){
-      if(prob == 1){
-	boundary_values[globalNode] = g2;
-      }
+      if(prob == 1)
+        boundary_values[globalNode] = g2;
     }
   }
-			
+            
 }
 
 //Setup data structures (sparse matrix, vectors)
@@ -219,7 +285,8 @@ template <int dim>
 void FEM<dim>::setup_system(){
 
   //Define constants for problem (Dirichlet boundary values)
-  g1 = ; g2 = ; //EDIT
+  g1 = 0;
+  g2 = 0.001; // DONE
 
   //Let deal.II organize degrees of freedom
   dof_handler.distribute_dofs (fe);
@@ -229,16 +296,15 @@ void FEM<dim>::setup_system(){
   std::vector< Point<dim,double> > dof_coords(dof_handler.n_dofs());
   nodeLocation.resize(dof_handler.n_dofs());
   DoFTools::map_dofs_to_support_points<dim,dim>(mapping,dof_handler,dof_coords);
-  for(unsigned int i=0; i<dof_coords.size(); i++){
+  for(unsigned int i=0; i<dof_coords.size(); i++)
     nodeLocation[i] = dof_coords[i][0];
-  }
 
   //Specify boundary condtions (call the function)
   define_boundary_conds();
 
   //Define the size of the global matrices and vectors
   sparsity_pattern.reinit (dof_handler.n_dofs(), dof_handler.n_dofs(),
-			   dof_handler.max_couplings_between_dofs());
+               dof_handler.max_couplings_between_dofs());
   DoFTools::make_sparsity_pattern (dof_handler, sparsity_pattern);
   sparsity_pattern.compress();
   K.reinit (sparsity_pattern);
@@ -248,14 +314,14 @@ void FEM<dim>::setup_system(){
   //Define quadrature rule
   /*A quad rule of 2 is included here as an example. You will need to decide
     what quadrature rule is needed for the given problems*/
-  quadRule = 2; //EDIT - Number of quadrature points along one dimension
+  quadRule = 2; //DONE - Number of quadrature points along one dimension
   quad_points.resize(quadRule); quad_weight.resize(quadRule);
 
-  quad_points[0] = -sqrt(1./3.); //EDIT
-  quad_points[1] = sqrt(1./3.); //EDIT
+  quad_points[0] = -sqrt(1./3.); // CONFIGURE
+  quad_points[1] = sqrt(1./3.); // CONFIGURE
 
-  quad_weight[0] = 1.; //EDIT
-  quad_weight[1] = 1.; //EDIT
+  quad_weight[0] = 1.; // CONFIGURE
+  quad_weight[1] = 1.; // CONFIGURE
 
   //Just some notes...
   std::cout << "   Number of active elems:       " << triangulation.n_active_cells() << std::endl;
@@ -266,7 +332,8 @@ void FEM<dim>::setup_system(){
 template <int dim>
 void FEM<dim>::assemble_system(){
 
-  K=0; F=0;
+  K=0;
+  F=0;
 
   const unsigned int   			dofs_per_elem = fe.dofs_per_cell; //This gives you number of degrees of freedom per element
   FullMatrix<double> 				Klocal (dofs_per_elem, dofs_per_elem);
@@ -293,43 +360,56 @@ void FEM<dim>::assemble_system(){
     //Loop over local DOFs and quadrature points to populate Flocal and Klocal.
     Flocal = 0.;
     for(unsigned int A=0; A<dofs_per_elem; A++){
-      for(unsigned int q=0; q<quadRule; q++){
-	x = 0;
-	//Interpolate the x-coordinates at the nodes to find the x-coordinate at the quad pt.
-	for(unsigned int B=0; B<dofs_per_elem; B++){
-	  x += nodeLocation[local_dof_indices[B]]*basis_function(B,quad_points[q]);
-	}
-	//EDIT - Define Flocal.
+      for(unsigned int q=0; q<quadRule; q++)
+      {
+        x = 0;
+        //Interpolate the x-coordinates at the nodes to find the x-coordinate at the quad pt.
+        for(unsigned int B = 0; B < dofs_per_elem; B++)
+          x += nodeLocation[ local_dof_indices[B] ] * basis_function(B,quad_points[q]);
+
+        //DONE - Define Flocal.
+        Flocal[A] += basis_function(A, quad_points[q]) * x * quad_weight[q];
       }
+      Flocal[A] *= f * h_e / 2;
     }
     //Add nonzero Neumann condition, if applicable
-    if(prob == 2){ 
-      if(nodeLocation[local_dof_indices[1]] == L){
-	//EDIT - Modify Flocal to include the traction on the right boundary.
-      }
+    if(prob == 2)
+    { 
+      if(nodeLocation[local_dof_indices[1]] == L)
+        //DONE - Modify Flocal to include the traction on the right boundary.
+        Flocal[1] += h;
     }
 
     //Loop over local DOFs and quadrature points to populate Klocal
     Klocal = 0;
-    for(unsigned int A=0; A<dofs_per_elem; A++){
-      for(unsigned int B=0; B<dofs_per_elem; B++){
-	for(unsigned int q=0; q<quadRule; q++){
-	  //EDIT - Define Klocal.
-	}
+    for(unsigned int A=0; A<dofs_per_elem; A++)
+    {
+      for(unsigned int B=0; B<dofs_per_elem; B++)
+      {
+        for(unsigned int q=0; q<quadRule; q++)
+        {
+          //DONE - Define Klocal.
+          Klocal[A][B] += basis_gradient(A, quad_points[q]) * basis_gradient(B, quad_points[q]) * quad_weight[q];
+        }
+        Klocal[A][B] *= 2. / h_e * E;
       }
     }
 
     //Assemble local K and F into global K and F
     //You will need to used local_dof_indices[A]
-    for(unsigned int A=0; A<dofs_per_elem; A++){
-      //EDIT - add component A of Flocal to the correct location in F
+    for(unsigned int A=0; A<dofs_per_elem; A++)
+    {
+      //DONE - add component A of Flocal to the correct location in F
       /*Remember, local_dof_indices[A] is the global degree-of-freedom number
-	corresponding to element node number A*/
-      for(unsigned int B=0; B<dofs_per_elem; B++){
-	//EDIT - add component A,B of Klocal to the correct location in K (using local_dof_indices)
-	/*Note: K is a sparse matrix, so you need to use the function "add".
-	  For example, to add the variable C to K[i][j], you would use:
-	  K.add(i,j,C);*/
+      corresponding to element node number A*/
+      F[local_dof_indices[A]] += Flocal[A];
+      for(unsigned int B=0; B<dofs_per_elem; B++)
+      {
+        //DONE - add component A,B of Klocal to the correct location in K (using local_dof_indices)
+        /*Note: K is a sparse matrix, so you need to use the function "add".
+        For example, to add the variable C to K[i][j], you would use:
+        K.add(i,j,C);*/
+        K.add(local_dof_indices[A], local_dof_indices[B], Klocal[A][B]);
       }
     }
 
@@ -343,8 +423,8 @@ void FEM<dim>::assemble_system(){
 
 //Solve for D in KD=F
 template <int dim>
-void FEM<dim>::solve(){
-
+void FEM<dim>::solve()
+{
   //Solve for D
   SparseDirectUMFPACK  A;
   A.initialize(K);
@@ -354,8 +434,8 @@ void FEM<dim>::solve(){
 
 //Output results
 template <int dim>
-void FEM<dim>::output_results (){
-
+void FEM<dim>::output_results ()
+{
   //Write results to VTK file
   std::ofstream output1("solution.vtk");
   DataOut<dim> data_out;
@@ -363,15 +443,16 @@ void FEM<dim>::output_results (){
 
   //Add nodal DOF data
   data_out.add_data_vector(D, nodal_solution_names, DataOut<dim>::type_dof_data,
-			   nodal_data_component_interpretation);
+               nodal_data_component_interpretation);
   data_out.build_patches();
   data_out.write_vtk(output1);
   output1.close();
 }
 
 template <int dim>
-double FEM<dim>::l2norm_of_error(){
-	
+double FEM<dim>::l2norm_of_error()
+{
+    
   double l2norm = 0.;
 
   //Find the l2 norm of the error between the finite element sol'n and the exact sol'n
@@ -382,8 +463,8 @@ double FEM<dim>::l2norm_of_error(){
   //loop over elements  
   typename DoFHandler<dim>::active_cell_iterator elem = dof_handler.begin_active (), 
     endc = dof_handler.end();
-  for (;elem!=endc; ++elem){
-
+  for (;elem!=endc; ++elem)
+  {
     //Retrieve the effective "connectivity matrix" for this element
     elem->get_dof_indices (local_dof_indices);
 
@@ -394,12 +475,20 @@ double FEM<dim>::l2norm_of_error(){
       x = 0.; u_h = 0.;
       //Find the values of x and u_h (the finite element solution) at the quadrature points
       for(unsigned int B=0; B<dofs_per_elem; B++){
-	x += nodeLocation[local_dof_indices[B]]*basis_function(B,quad_points[q]);
-	u_h += D[local_dof_indices[B]]*basis_function(B,quad_points[q]);
+        x += nodeLocation[local_dof_indices[B]]*basis_function(B,quad_points[q]);
+        u_h += D[local_dof_indices[B]]*basis_function(B,quad_points[q]);
       }
-      //EDIT - Find the l2-norm of the error through numerical integration.
+      //DONE - Find the l2-norm of the error through numerical integration.
       /*This includes evaluating the exact solution at the quadrature points*/
-							
+      double du_0;
+  
+      if (prob != 1)
+        du_0 = std::pow(L, 2) / 2 + 0.1
+      else
+        du_0 = (g2 + std::pow(L, 3) / 6 - g1) / L
+      u_exact = du_0 * x - std::pow(x, 3) / 6 + g1;
+
+      l2norm += std::pow(u_h - u_exact, 2) * quad_weight[q] * h_e / 2;
     }
   }
 
